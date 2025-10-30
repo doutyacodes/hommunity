@@ -1,0 +1,201 @@
+test request data : {
+  "guestName": "John Doe",
+  "guestPhone": "9876543210",
+  "apartmentId": 4,
+  "vehicleNumber": "MH12AB1234",
+  "purpose": "Visiting resident for maintenance work",
+  "photoFilename": "guest_photo_20251031_134500.jpg"
+}
+
+test response data: {
+    "success": true,
+    "message": "Guest entry created successfully",
+    "data": {
+        "guestId": 1,
+        "qrCode": "GW-1761853178044-R03GML9HM",
+        "status": "pending",
+        "notificationSent": true
+    }
+}
+
+
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Oct 30, 2025 at 07:41 PM
+-- Server version: 8.0.44
+-- PHP Version: 8.4.13
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `devuser_gatewise`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` bigint UNSIGNED NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mobile_number` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mobile_verified` tinyint(1) DEFAULT '0',
+  `email_verified` tinyint(1) DEFAULT '0',
+  `fcm_token` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `expo_push_token` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `mobile_number`, `email`, `password`, `mobile_verified`, `email_verified`, `fcm_token`, `expo_push_token`, `created_at`) VALUES
+(1, 'John Doe', '+919876543210', 'john@example.com', NULL, 1, 0, NULL, NULL, '2025-10-26 07:17:27'),
+(2, 'Alan Ricks', '9876543210', 'alan@gmail.com', '$2b$10$Zi2X81oqWBRkIogdeiY2me9V2WLoq2sKw5Nq6HPzx0TCdQxd/MdT2', 1, 1, NULL, NULL, '2025-10-29 06:22:34'),
+(5, 'Alan', '1234567890', NULL, NULL, 0, 0, NULL, NULL, '2025-10-29 08:54:48'),
+(6, 'Alez', '9876543211', 'orange@gmail.com', '$2b$10$6U6tZY4PLwefXqbudlrwmOWKi/DY9UFzQ9jkbmDCrXYBcRAeIfS5q', 1, 1, 'dNYNwr2XQzSm88M1BcRtsw:APA91bEdzKiiwNhR0jh4UlqYipQ_SPvAaj7CgGhxET5yG2ihwC8Zn_zR8Ah0pAEFZInymGk6CJM-jYmhNWbwulsXJYivO11xuJXpNuU18JMBg3k0yT3wY2s', 'ExponentPushToken[MHaMO4EZ6lN6EAXrI6SnSQ]', '2025-10-30 18:51:34');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mobile_number` (`mobile_number`),
+  ADD KEY `idx_mobile` (`mobile_number`),
+  ADD KEY `idx_email` (`email`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Oct 30, 2025 at 07:42 PM
+-- Server version: 8.0.44
+-- PHP Version: 8.4.13
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `devuser_gatewise`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `guests`
+--
+
+CREATE TABLE `guests` (
+  `id` bigint UNSIGNED NOT NULL,
+  `created_by_user_id` bigint UNSIGNED NOT NULL,
+  `community_id` bigint UNSIGNED NOT NULL,
+  `guest_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `guest_phone` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `guest_type` enum('frequent','one_time') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'one_time',
+  `approval_type` enum('needs_approval','preapproved','private') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'needs_approval',
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `qr_code` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `purpose` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `status` enum('pending','approved','denied','expired') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
+  `vehicle_number` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `photo_filename` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `guests`
+--
+
+INSERT INTO `guests` (`id`, `created_by_user_id`, `community_id`, `guest_name`, `guest_phone`, `guest_type`, `approval_type`, `start_date`, `end_date`, `start_time`, `end_time`, `qr_code`, `purpose`, `status`, `vehicle_number`, `photo_filename`, `created_at`) VALUES
+(1, 6, 2, 'John Doe', '9876543210', 'one_time', 'needs_approval', '2025-10-30', NULL, '19:39:38', NULL, 'GW-1761853178044-R03GML9HM', 'Visiting resident for maintenance work', 'pending', 'MH12AB1234', 'guest_photo_20251031_134500.jpg', '2025-10-30 19:39:38');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `guests`
+--
+ALTER TABLE `guests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `qr_code` (`qr_code`),
+  ADD KEY `idx_creator` (`created_by_user_id`),
+  ADD KEY `idx_community` (`community_id`),
+  ADD KEY `idx_qr_code` (`qr_code`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_dates` (`start_date`,`end_date`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `guests`
+--
+ALTER TABLE `guests`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `guests`
+--
+ALTER TABLE `guests`
+  ADD CONSTRAINT `guests_ibfk_1` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `guests_ibfk_2` FOREIGN KEY (`community_id`) REFERENCES `communities` (`id`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+

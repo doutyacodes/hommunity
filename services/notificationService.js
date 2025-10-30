@@ -206,8 +206,10 @@ class NotificationService {
 
           const notificationData = response.notification.request.content.data;
 
-          // Handle deep linking based on notification data
-          this.handleNotificationDeepLink(notificationData);
+          // REMOVED: handleNotificationDeepLink() call
+          // Reason: Linking.openURL() conflicts with expo-router navigation
+          // Navigation is now handled by NotificationContext via onNotificationOpened callback
+          // this.handleNotificationDeepLink(notificationData);
 
           if (onNotificationOpened) {
             onNotificationOpened(response);

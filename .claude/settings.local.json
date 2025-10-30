@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(tree -L 3 -I \"node_modules|.git|.next|dist|build\" --dirsfirst)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

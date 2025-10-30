@@ -22,8 +22,20 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.doutyacode.hommunity",
       "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true,
-      "permissions": ["NOTIFICATIONS"]
+      "permissions": ["NOTIFICATIONS"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "hommunity",
+              "host": "*"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "output": "static",
@@ -50,7 +62,9 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#3B82F6",
           "sounds": ["./assets/sounds/notification.wav"],
-          "mode": "production"
+          "mode": "production",
+          "androidMode": "default",
+          "androidCollapsedTitle": "Hommunity"
         }
       ]
     ],
