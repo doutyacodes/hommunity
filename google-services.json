@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "139905005715",
+    "project_id": "hommunity-e20fa",
+    "storage_bucket": "hommunity-e20fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139905005715:android:30f9641f41f711c6cd7566",
+        "android_client_info": {
+          "package_name": "com.doutyacode.hommunity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0SZWzHoSO97fPcfwqAw7KXULoOdWruxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

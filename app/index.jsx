@@ -146,7 +146,7 @@ export default function OnboardingScreen() {
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>GateWise</Text>
+          <Text style={styles.title}>Hommunity</Text>
           <Text style={styles.subtitle}>Secure Access Management</Text>
 
           {/* Features with modern pill design */}
@@ -284,7 +284,7 @@ export default function OnboardingScreen() {
           style={styles.footer}
         >
           <View style={styles.footerDivider} />
-          <Text style={styles.footerText}>© 2025 GateWise</Text>
+          <Text style={styles.footerText}>© 2025 Hommunity</Text>
           <Text style={styles.footerSubtext}>Powered by Modern Security</Text>
         </Animated.View>
       </View>

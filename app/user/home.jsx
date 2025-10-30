@@ -18,6 +18,7 @@ import {
     Users
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
+import { useNotification } from '@/contexts/NotificationContext';
 import {
     ActivityIndicator,
     FlatList,
@@ -32,6 +33,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 export default function UserHomeScreen() {
   const router = useRouter();
+  const { registerForNotifications, fcmToken, expoPushToken } = useNotification();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [ownedApartments, setOwnedApartments] = useState([]);
@@ -40,6 +42,42 @@ export default function UserHomeScreen() {
 
   useEffect(() => {
     fetchApartments();
+
+    // Register for notifications after login
+    registerForNotifications().then(async (result) => {
+      if (result.success) {
+        console.log('✅ Notifications registered successfully');
+        console.log('FCM Token:', result.fcmToken);
+        console.log('Expo Token:', result.expoPushToken);
+
+        // Save tokens to backend
+        try {
+          const token = await getAuthToken();
+          const response = await fetch(
+            buildApiUrl(API_ENDPOINTS.UPDATE_PUSH_TOKEN),
+            {
+              method: 'POST',
+              headers: getApiHeaders(token),
+              body: JSON.stringify({
+                fcmToken: result.fcmToken,
+                expoPushToken: result.expoPushToken,
+              }),
+            }
+          );
+
+          const data = await response.json();
+          if (data.success) {
+            console.log('✅ Push tokens saved to backend');
+          } else {
+            console.log('⚠️ Failed to save tokens:', data.error);
+          }
+        } catch (err) {
+          console.error('❌ Error saving tokens:', err);
+        }
+      } else {
+        console.log('⚠️ Failed to register notifications:', result.error);
+      }
+    });
   }, []);
 
   const fetchApartments = async () => {

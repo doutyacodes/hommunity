@@ -36,6 +36,11 @@ export const API_ENDPOINTS = {
   GET_QR_CODE: '/api/mobile-api/user/get-qr',
   GET_MY_APARTMENTS: '/api/mobile-api/user/my-apartments',
   GET_MY_MEMBERS: '/api/mobile-api/user/my-members',
+  UPDATE_PUSH_TOKEN: '/api/mobile-api/user/update-push-token',
+  APPROVE_GUEST: '/api/mobile-api/user/approve-guest',
+  APPROVE_DELIVERY: '/api/mobile-api/user/approve-delivery',
+  GET_GUEST_DETAILS: '/api/mobile-api/user/approve-guest',
+  GET_DELIVERY_DETAILS: '/api/mobile-api/user/approve-delivery',
   
   // ============================================
   // Apartment Request Operations (NEW)
