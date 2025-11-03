@@ -5,7 +5,7 @@
 
 // API Base URL
 export const API_BASE_URL = 'https://gatewise.vercel.app';
-// export const API_BASE_URL = 'http://192.168.1.4:3000';
+// export const API_BASE_URL = 'http://192.168.1.8:3000';
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -55,6 +55,30 @@ export const API_ENDPOINTS = {
   // ============================================
   ADMIN_APARTMENT_REQUESTS: '/api/mobile-api/admin/apartment-requests',
   ADMIN_REVIEW_REQUEST: (requestId) => `/api/mobile-api/admin/apartment-requests/${requestId}`,
+
+  // ============================================
+  // Guest Management (NEW)
+  // ============================================
+  GET_CURRENT_APARTMENT: '/api/mobile-api/user/current-apartment',
+  SWITCH_APARTMENT: '/api/mobile-api/user/switch-apartment',
+  GUEST_HISTORY: '/api/mobile-api/user/guests/history',
+  ACTIVE_GUESTS: '/api/mobile-api/user/guests/active',
+  TOGGLE_GUEST_ACTIVE: '/api/mobile-api/user/guests',  // + /:id/toggle-active
+  DELETE_GUEST: '/api/mobile-api/user/guests',  // + /:id
+
+  // ============================================
+  // Security QR Scanning (NEW)
+  // ============================================
+  SCAN_QR: '/api/mobile-api/security/scan-qr',
+  QR_SCAN_HISTORY: '/api/mobile-api/security/scan-history',
+
+  // ============================================
+  // Members Management (NEW)
+  // ============================================
+  MEMBERS_LIST: '/api/mobile-api/user/members',
+  ADD_MEMBER: '/api/mobile-api/user/members',
+  UPDATE_MEMBER: '/api/mobile-api/user/members',
+  DELETE_MEMBER: '/api/mobile-api/user/members',
 };
 
 // Secure Storage Keys

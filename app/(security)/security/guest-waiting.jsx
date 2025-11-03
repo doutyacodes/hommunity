@@ -1,8 +1,10 @@
 // ============================================
 // FILE: app/security/guest-waiting.jsx
-// Guest Waiting for Approval Screen
+// Guest Waiting for Approval Screen - UPDATED with proper API calls
 // ============================================
 import SafeAreaWrapper from '@/components/SafeAreaWrapper';
+import { buildApiUrl, getApiHeaders } from '@/config/apiConfig';
+import { getAuthToken } from '@/services/authService';
 import theme from '@/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -78,11 +80,10 @@ export default function GuestWaitingScreen() {
 
   const fetchGuestData = async () => {
     try {
-      // TODO: Replace with your API endpoint
-      const response = await fetch(`YOUR_API_ENDPOINT/api/mobile-api/security/guest/${guestId}`, {
-        headers: {
-          // Add auth token
-        },
+      const token = await getAuthToken();
+      const response = await fetch(buildApiUrl(`/api/mobile-api/security/guest/${guestId}`), {
+        method: 'GET',
+        headers: getApiHeaders(token),
       });
 
       const data = await response.json();
@@ -90,9 +91,12 @@ export default function GuestWaitingScreen() {
       if (data.success) {
         setGuestData(data.data);
         setApprovalStatus(data.data.status);
+      } else {
+        Alert.alert('Error', data.error || 'Failed to load guest data');
       }
     } catch (error) {
       console.error('Error fetching guest data:', error);
+      Alert.alert('Error', 'Failed to load guest information');
     } finally {
       setLoading(false);
     }
@@ -100,11 +104,10 @@ export default function GuestWaitingScreen() {
 
   const checkApprovalStatus = async () => {
     try {
-      // TODO: Replace with your API endpoint
-      const response = await fetch(`YOUR_API_ENDPOINT/api/mobile-api/security/check-approval/${guestId}`, {
-        headers: {
-          // Add auth token
-        },
+      const token = await getAuthToken();
+      const response = await fetch(buildApiUrl(`/api/mobile-api/security/check-approval/${guestId}`), {
+        method: 'GET',
+        headers: getApiHeaders(token),
       });
 
       const data = await response.json();

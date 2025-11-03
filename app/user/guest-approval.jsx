@@ -1,25 +1,28 @@
 // ============================================
 // FILE: app/user/guest-approval.jsx
-// Guest Approval Screen - Accept/Reject Guest
+// Guest Approval Screen - Modern UI with Polling & Member Verification
 // ============================================
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Platform,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, shadows } from '@/theme';
-import { buildApiUrl, API_ENDPOINTS, getApiHeaders } from '@/config/apiConfig';
+import { API_ENDPOINTS, buildApiUrl, getApiHeaders } from '@/config/apiConfig';
 import { getAuthToken } from '@/services/authService';
+import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const POLL_INTERVAL = 5000; // Poll every 5 seconds
 
 export default function GuestApprovalScreen() {
   const params = useLocalSearchParams();
@@ -28,6 +31,13 @@ export default function GuestApprovalScreen() {
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [guestDetails, setGuestDetails] = useState(null);
+  const [alreadyProcessed, setAlreadyProcessed] = useState(false);
+  const [processedBy, setProcessedBy] = useState(null);
+  const [isPrivateMember, setIsPrivateMember] = useState(false);
+
+  // Polling
+  const pollIntervalRef = useRef(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   // Extract params from notification
   const guestId = params.guestId;
@@ -38,8 +48,6 @@ export default function GuestApprovalScreen() {
   const photoFilename = params.photoFilename || '';
 
   useEffect(() => {
-    // If we have minimal data from notification, use it
-    // Otherwise fetch full details
     if (guestId && guestName) {
       setGuestDetails({
         id: guestId,
@@ -49,10 +57,99 @@ export default function GuestApprovalScreen() {
         photoFilename,
         timestamp,
       });
+      fetchGuestDetails();
     } else {
       fetchGuestDetails();
     }
+
+    // Start polling
+    startPolling();
+
+    // Cleanup
+    return () => {
+      stopPolling();
+    };
   }, [guestId]);
+
+  // Pulse animation for pending approval
+  useEffect(() => {
+    if (!alreadyProcessed) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [alreadyProcessed]);
+
+  const startPolling = () => {
+    // Poll immediately
+    checkApprovalStatus();
+
+    // Then poll every 5 seconds
+    pollIntervalRef.current = setInterval(() => {
+      checkApprovalStatus();
+    }, POLL_INTERVAL);
+  };
+
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  };
+
+  const checkApprovalStatus = async () => {
+    if (!guestId) return;
+
+    try {
+      const token = await getAuthToken();
+      const response = await fetch(
+        buildApiUrl(`/api/mobile-api/user/guest-details?guestId=${guestId}`),
+        {
+          method: 'GET',
+          headers: getApiHeaders(token),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const guest = data.data;
+
+        // Check if already approved or denied
+        if (guest.status === 'approved' || guest.status === 'denied') {
+          setAlreadyProcessed(true);
+          setProcessedBy(guest.approvedBy || 'Someone');
+          stopPolling();
+
+          // Auto-redirect after 3 seconds
+          setTimeout(() => {
+            router.back();
+          }, 3000);
+        }
+
+        // Check if created by a member (private)
+        if (guest.createdByMemberId) {
+          setIsPrivateMember(true);
+        }
+
+        setGuestDetails(guest);
+      }
+    } catch (error) {
+      // console.error('Error checking approval status:', error);
+      // Continue polling even on error
+    }
+  };
 
   const fetchGuestDetails = async () => {
     if (!guestId) return;
@@ -71,20 +168,36 @@ export default function GuestApprovalScreen() {
       const data = await response.json();
 
       if (data.success) {
-        setGuestDetails(data.data);
+        const guest = data.data;
+
+        // Check if already processed
+        if (guest.status === 'approved' || guest.status === 'denied') {
+          setAlreadyProcessed(true);
+          setProcessedBy(guest.approvedBy || 'Someone');
+          stopPolling();
+        }
+
+        // Check if created by member
+        if (guest.createdByMemberId) {
+          setIsPrivateMember(true);
+        }
+
+        setGuestDetails(guest);
       } else {
-        Alert.alert('Error', data.error || 'Failed to fetch guest details');
+        // Alert.alert('Error', data.error || 'Failed to fetch guest details');
       }
     } catch (error) {
-      console.error('Error fetching guest:', error);
-      Alert.alert('Error', 'Failed to load guest details');
+      // console.error('Error fetching guest:', error);
+      // Alert.alert('Error', 'Failed to load guest details');
     } finally {
       setLoading(false);
     }
   };
 
   const handleApproval = async (approved) => {
+    stopPolling(); // Stop polling while processing
     setProcessing(true);
+
     try {
       const token = await getAuthToken();
       const response = await fetch(
@@ -102,8 +215,10 @@ export default function GuestApprovalScreen() {
       const data = await response.json();
 
       if (data.success) {
+        setAlreadyProcessed(true);
+
         Alert.alert(
-          approved ? 'Guest Approved' : 'Guest Denied',
+          approved ? '✅ Guest Approved' : '❌ Guest Denied',
           approved
             ? `${guestName} has been granted access`
             : `${guestName}'s entry has been denied`,
@@ -115,11 +230,21 @@ export default function GuestApprovalScreen() {
           ]
         );
       } else {
-        Alert.alert('Error', data.error || 'Failed to process approval');
+        // If error is "already processed", handle it gracefully
+        if (data.error.includes('already')) {
+          setAlreadyProcessed(true);
+          // Alert.alert('Notice', 'This guest has already been processed by someone else', [
+            // { text: 'OK', onPress: () => router.back() },
+          // ]);
+        } else {
+          // Alert.alert('Error', data.error || 'Failed to process approval');
+          // startPolling(); // Resume polling on error
+        }
       }
     } catch (error) {
-      console.error('Error processing approval:', error);
-      Alert.alert('Error', 'Failed to process your request');
+      // console.error('Error processing approval:', error);
+      // Alert.alert('Error', 'Failed to process your request');
+      startPolling(); // Resume polling on error
     } finally {
       setProcessing(false);
     }
@@ -189,98 +314,199 @@ export default function GuestApprovalScreen() {
         </View>
 
         {/* Alert Banner */}
-        <View style={styles.alertBanner}>
-          <Ionicons name="notifications-outline" size={32} color={colors.primary.blue} />
-          <Text style={styles.alertTitle}>New Guest at Gate</Text>
-          <Text style={styles.alertSubtitle}>Please approve or deny entry</Text>
-        </View>
+        {!alreadyProcessed ? (
+          <Animated.View style={[styles.alertBanner, { transform: [{ scale: pulseAnim }] }]}>
+            <LinearGradient
+              colors={[colors.primaryShades.blue100, colors.primaryShades.blue50]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.alertBannerGradient}
+            >
+              <View style={styles.alertIconContainer}>
+                <Ionicons name="notifications" size={32} color={colors.primary.blue} />
+              </View>
+              <Text style={styles.alertTitle}>New Guest at Gate</Text>
+              <Text style={styles.alertSubtitle}>Please approve or deny entry</Text>
+
+              {isPrivateMember && (
+                <View style={styles.privateBadge}>
+                  <Ionicons name="lock-closed" size={14} color={colors.primary.purple} />
+                  <Text style={styles.privateBadgeText}>Private Guest (Member)</Text>
+                </View>
+              )}
+            </LinearGradient>
+          </Animated.View>
+        ) : (
+          <View style={styles.processedBanner}>
+            <LinearGradient
+              colors={
+                guestDetails.status === 'approved'
+                  ? [colors.status.successLight, colors.status.success]
+                  : [colors.status.errorLight, colors.status.error]
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.processedBannerGradient}
+            >
+              <Ionicons
+                name={guestDetails.status === 'approved' ? 'checkmark-circle' : 'close-circle'}
+                size={48}
+                color={colors.neutral.white}
+              />
+              <Text style={styles.processedTitle}>
+                {guestDetails.status === 'approved' ? 'Already Approved' : 'Already Denied'}
+              </Text>
+              <Text style={styles.processedSubtitle}>
+                This guest was {guestDetails.status} by {processedBy}
+              </Text>
+            </LinearGradient>
+          </View>
+        )}
 
         {/* Guest Photo */}
         {photoFilename ? (
           <View style={styles.photoContainer}>
             <Image
               source={{
-                uri: `${buildApiUrl('/uploads/guests/' + photoFilename)}`,
+                uri: `https://wowfy.in/gatewise/guest_images/${photoFilename}`,
               }}
               style={styles.guestPhoto}
               resizeMode="cover"
             />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.6)']}
+              style={styles.photoOverlay}
+            />
           </View>
         ) : (
           <View style={styles.photoPlaceholder}>
-            <Ionicons name="person-outline" size={80} color={colors.neutral.gray400} />
+            <LinearGradient
+              colors={[colors.primaryShades.blue50, colors.primaryShades.purple50]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.photoPlaceholderGradient}
+            >
+              <Ionicons name="person-outline" size={80} color={colors.primary.blue} />
+            </LinearGradient>
           </View>
         )}
 
         {/* Guest Details Card */}
         <View style={styles.detailsCard}>
-          <DetailRow
-            icon="person"
-            label="Guest Name"
-            value={guestDetails.guestName}
-          />
-          <DetailRow
-            icon="home"
-            label="Apartment"
-            value={apartmentNumber}
-          />
-          {vehicleNumber && (
+          <LinearGradient
+            colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,1)']}
+            style={styles.detailsCardGradient}
+          >
             <DetailRow
-              icon="car"
-              label="Vehicle"
-              value={vehicleNumber}
+              icon="person"
+              label="Guest Name"
+              value={guestDetails.guestName}
+              iconColor={colors.primary.blue}
             />
-          )}
-          <DetailRow
-            icon="time"
-            label="Arrival Time"
-            value={formattedTime}
-          />
+            <DetailRow
+              icon="home"
+              label="Apartment"
+              value={apartmentNumber}
+              iconColor={colors.primary.purple}
+            />
+            {vehicleNumber && (
+              <DetailRow
+                icon="car"
+                label="Vehicle"
+                value={vehicleNumber}
+                iconColor={colors.primary.cyan}
+              />
+            )}
+            <DetailRow
+              icon="time"
+              label="Arrival Time"
+              value={formattedTime}
+              iconColor={colors.status.warning}
+            />
+            {guestDetails.guestPhone && (
+              <DetailRow
+                icon="call"
+                label="Phone"
+                value={guestDetails.guestPhone}
+                iconColor={colors.status.success}
+              />
+            )}
+            {guestDetails.purpose && (
+              <DetailRow
+                icon="information-circle"
+                label="Purpose"
+                value={guestDetails.purpose}
+                iconColor={colors.status.info}
+              />
+            )}
+          </LinearGradient>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.denyButton]}
-            onPress={() => confirmApproval(false)}
-            disabled={processing}
-          >
-            {processing ? (
-              <ActivityIndicator color={colors.neutral.white} />
-            ) : (
-              <>
-                <Ionicons name="close-circle" size={24} color={colors.neutral.white} />
-                <Text style={styles.actionButtonText}>Deny Entry</Text>
-              </>
-            )}
-          </TouchableOpacity>
+        {/* Action Buttons - Only show if not processed */}
+        {!alreadyProcessed && (
+          <View style={styles.actionContainer}>
+            <TouchableOpacity
+              style={styles.actionButtonWrapper}
+              onPress={() => confirmApproval(false)}
+              disabled={processing}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[colors.status.error, '#DC2626']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.actionButtonGradient}
+              >
+                {processing ? (
+                  <ActivityIndicator color={colors.neutral.white} />
+                ) : (
+                  <>
+                    <View style={styles.actionIconContainer}>
+                      <Ionicons name="close-circle" size={24} color={colors.neutral.white} />
+                    </View>
+                    <Text style={styles.actionButtonText}>Deny Entry</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionButton, styles.approveButton]}
-            onPress={() => confirmApproval(true)}
-            disabled={processing}
-          >
-            {processing ? (
-              <ActivityIndicator color={colors.neutral.white} />
-            ) : (
-              <>
-                <Ionicons name="checkmark-circle" size={24} color={colors.neutral.white} />
-                <Text style={styles.actionButtonText}>Approve Entry</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.actionButtonWrapper}
+              onPress={() => confirmApproval(true)}
+              disabled={processing}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={[colors.status.success, '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.actionButtonGradient}
+              >
+                {processing ? (
+                  <ActivityIndicator color={colors.neutral.white} />
+                ) : (
+                  <>
+                    <View style={styles.actionIconContainer}>
+                      <Ionicons name="checkmark-circle" size={24} color={colors.neutral.white} />
+                    </View>
+                    <Text style={styles.actionButtonText}>Approve Entry</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 // Helper component for detail rows
-function DetailRow({ icon, label, value }) {
+function DetailRow({ icon, label, value, iconColor }) {
   return (
     <View style={styles.detailRow}>
-      <View style={styles.detailIcon}>
-        <Ionicons name={icon} size={20} color={colors.primary.blue} />
+      <View style={[styles.detailIcon, { backgroundColor: iconColor + '15' }]}>
+        <Ionicons name={icon} size={20} color={iconColor} />
       </View>
       <View style={styles.detailContent}>
         <Text style={styles.detailLabel}>{label}</Text>
@@ -296,7 +522,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing.xxxl,
   },
   loadingContainer: {
     flex: 1,
@@ -340,65 +566,137 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     backgroundColor: colors.background.primary,
+    ...shadows.sm,
   },
   backIcon: {
     padding: spacing.xs,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.neutral.gray50,
   },
   headerTitle: {
     fontSize: typography.sizes.xl,
     fontFamily: typography.fonts.bold,
     color: colors.text.primary,
   },
+
+  // Alert Banner
   alertBanner: {
-    backgroundColor: colors.primaryShades.blue50,
-    borderRadius: spacing.md,
-    padding: spacing.lg,
     marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  alertBannerGradient: {
+    padding: spacing.xl,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.primaryShades.blue200,
+  },
+  alertIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.neutral.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    ...shadows.md,
   },
   alertTitle: {
-    fontSize: typography.sizes.xl,
+    fontSize: typography.sizes.xxl,
     fontFamily: typography.fonts.bold,
     color: colors.text.primary,
-    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
   },
   alertSubtitle: {
     fontSize: typography.sizes.md,
     fontFamily: typography.fonts.regular,
     color: colors.text.secondary,
-    marginTop: spacing.xs,
   },
+  privateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.primaryShades.purple100,
+    borderRadius: borderRadius.full,
+  },
+  privateBadgeText: {
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.fonts.semibold,
+    color: colors.primary.purple,
+  },
+
+  // Processed Banner
+  processedBanner: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  processedBannerGradient: {
+    padding: spacing.xl,
+    alignItems: 'center',
+  },
+  processedTitle: {
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.fonts.bold,
+    color: colors.neutral.white,
+    marginTop: spacing.md,
+  },
+  processedSubtitle: {
+    fontSize: typography.sizes.md,
+    fontFamily: typography.fonts.regular,
+    color: colors.neutral.white,
+    marginTop: spacing.xs,
+    opacity: 0.9,
+  },
+
+  // Photo
   photoContainer: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
-    borderRadius: spacing.md,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    ...shadows.medium,
+    ...shadows.xl,
   },
   guestPhoto: {
     width: '100%',
-    height: 300,
+    height: 320,
     backgroundColor: colors.neutral.gray100,
+  },
+  photoOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
   },
   photoPlaceholder: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
-    height: 300,
-    backgroundColor: colors.neutral.gray100,
-    borderRadius: spacing.md,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.md,
+  },
+  photoPlaceholderGradient: {
+    height: 320,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // Details Card
   detailsCard: {
-    backgroundColor: colors.background.card,
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
-    borderRadius: spacing.md,
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.lg,
+  },
+  detailsCardGradient: {
     padding: spacing.lg,
-    ...shadows.small,
   },
   detailRow: {
     flexDirection: 'row',
@@ -408,10 +706,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.neutral.gray100,
   },
   detailIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primaryShades.blue50,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -420,37 +717,44 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailLabel: {
-    fontSize: typography.sizes.sm,
-    fontFamily: typography.fonts.regular,
+    fontSize: typography.sizes.xs,
+    fontFamily: typography.fonts.medium,
     color: colors.text.tertiary,
-    marginBottom: spacing.xxs,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   detailValue: {
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.lg,
     fontFamily: typography.fonts.semibold,
     color: colors.text.primary,
   },
+
+  // Action Buttons
   actionContainer: {
     flexDirection: 'row',
     marginHorizontal: spacing.lg,
     marginTop: spacing.xl,
     gap: spacing.md,
   },
-  actionButton: {
+  actionButtonWrapper: {
     flex: 1,
-    flexDirection: 'row',
+    borderRadius: borderRadius.xl,
+    overflow: 'hidden',
+    ...shadows.xl,
+  },
+  actionButtonGradient: {
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: spacing.lg,
-    borderRadius: spacing.md,
     gap: spacing.sm,
-    ...shadows.medium,
   },
-  denyButton: {
-    backgroundColor: colors.status.error,
-  },
-  approveButton: {
-    backgroundColor: colors.status.success,
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actionButtonText: {
     color: colors.neutral.white,

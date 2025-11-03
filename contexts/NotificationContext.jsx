@@ -168,6 +168,7 @@ export function NotificationProvider({ children }) {
       return;
     }
 
+    console.log("📦 Notification data received:", JSON.stringify(data, null, 2));
     setNotificationData(data);
 
     // Clear any existing navigation interval to prevent multiple intervals
@@ -177,12 +178,21 @@ export function NotificationProvider({ children }) {
       console.log("🧹 Cleared existing navigation interval");
     }
 
+    // Immediately attempt navigation if router is ready
+    if (readyToNavigate) {
+      console.log("✅ Router already ready, navigating immediately...");
+      navigateFromNotification(data);
+      return;
+    }
+
     // Wait for router readiness before navigating with timeout protection
+    console.log("⏳ Waiting for router to be ready...");
     let attempts = 0;
-    const maxAttempts = 20; // 6 seconds max (20 * 300ms)
+    const maxAttempts = 30; // 9 seconds max (30 * 300ms)
 
     navigationIntervalRef.current = setInterval(() => {
       attempts++;
+      console.log(`⏳ Router check attempt ${attempts}/${maxAttempts}`);
 
       if (readyToNavigate) {
         // Router is ready, navigate
@@ -194,7 +204,7 @@ export function NotificationProvider({ children }) {
         // Timeout reached, try navigating anyway
         clearInterval(navigationIntervalRef.current);
         navigationIntervalRef.current = null;
-        console.warn("⚠️ Navigation timeout (6s), forcing navigation attempt");
+        console.warn("⚠️ Navigation timeout (9s), forcing navigation attempt");
         navigateFromNotification(data);
       }
     }, 300);
@@ -214,7 +224,7 @@ export function NotificationProvider({ children }) {
 
       const { screen, type, ...params } = data;
 
-      // Delay a bit to ensure app readiness
+      // Use InteractionManager for better timing and multiple navigation attempts
       setTimeout(() => {
         try {
           let route = `/${screen}`;
@@ -229,11 +239,33 @@ export function NotificationProvider({ children }) {
 
           console.log("📍 Navigating to:", route);
 
-          router.push(route);
+          // Try multiple navigation methods for better reliability
+          try {
+            // Method 1: Use router.push (primary method)
+            router.push(route);
+            console.log("✅ Router.push executed");
+          } catch (pushError) {
+            console.error("❌ Router.push failed:", pushError);
+
+            // Method 2: Fallback to router.replace
+            try {
+              router.replace(route);
+              console.log("✅ Router.replace executed (fallback)");
+            } catch (replaceError) {
+              console.error("❌ Router.replace failed:", replaceError);
+
+              // Method 3: Last resort - use deep link
+              const deepLinkUrl = Linking.createURL(screen, { queryParams: params });
+              console.log("🔗 Attempting deep link:", deepLinkUrl);
+              Linking.openURL(deepLinkUrl).catch((linkError) => {
+                console.error("❌ Deep link failed:", linkError);
+              });
+            }
+          }
         } catch (navError) {
           console.error("❌ Navigation error:", navError);
         }
-      }, 500);
+      }, 1000); // Increased delay to 1 second for better reliability
     } catch (err) {
       console.error("❌ Error navigating from notification:", err);
     }

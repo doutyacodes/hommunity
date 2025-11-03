@@ -4,30 +4,30 @@
 // ============================================
 import SafeAreaWrapper from '@/components/SafeAreaWrapper';
 import { API_ENDPOINTS, buildApiUrl, getApiHeaders } from '@/config/apiConfig';
+import { useNotification } from '@/contexts/NotificationContext';
 import { getAuthToken } from '@/services/authService';
 import theme from '@/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
-    Building2,
-    Home as HomeIcon,
-    MapPin,
-    Plus,
-    Shield,
-    Users
+  Building2,
+  Home as HomeIcon,
+  MapPin,
+  Plus,
+  Shield,
+  Users
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { useNotification } from '@/contexts/NotificationContext';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 

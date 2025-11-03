@@ -4,10 +4,7 @@
 // INSTRUCTIONS: Replace scan-qr.jsx with this file
 // ============================================
 import SafeAreaWrapper from '@/components/SafeAreaWrapper';
-import { buildApiUrl, getApiHeaders } from '@/config/apiConfig';
-import { getAuthToken } from '@/services/authService';
 import theme from '@/theme';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -19,9 +16,12 @@ import {
   Scan,
   XCircle
 } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View, Vibration, Alert } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp, FadeOut } from 'react-native-reanimated';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { buildApiUrl, getApiHeaders } from '@/config/apiConfig';
+import { getAuthToken } from '@/services/authService';
 
 const { width } = Dimensions.get('window');
 

@@ -69,7 +69,7 @@ export default function UserLoginScreen() {
       if (result.success) {
         console.log('✅ Login successful, navigating to user home...');
         // Navigate to user home
-        router.replace('/user/home');
+        router.replace('/home');
       } else {
         setError(result.error || 'Login failed. Please try again.');
       }

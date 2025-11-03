@@ -202,9 +202,20 @@ class NotificationService {
       this.responseListener = Notifications.addNotificationResponseReceivedListener(
         (response) => {
           console.log('👆 Notification tapped (OPENED APP):', response);
-          console.log('Response data:', response.notification.request.content.data);
+          console.log('📦 Full notification response:', JSON.stringify(response, null, 2));
+          console.log('📍 Response data:', response.notification.request.content.data);
+          console.log('🎯 Notification title:', response.notification.request.content.title);
+          console.log('📄 Notification body:', response.notification.request.content.body);
 
           const notificationData = response.notification.request.content.data;
+
+          // Log navigation intent
+          if (notificationData && notificationData.screen) {
+            console.log(`🚀 Will navigate to: /${notificationData.screen}`);
+            console.log('📝 With params:', JSON.stringify(notificationData, null, 2));
+          } else {
+            console.warn('⚠️ No screen specified in notification data!');
+          }
 
           // REMOVED: handleNotificationDeepLink() call
           // Reason: Linking.openURL() conflicts with expo-router navigation
@@ -212,7 +223,10 @@ class NotificationService {
           // this.handleNotificationDeepLink(notificationData);
 
           if (onNotificationOpened) {
+            console.log('✅ Calling onNotificationOpened callback...');
             onNotificationOpened(response);
+          } else {
+            console.error('❌ onNotificationOpened callback not defined!');
           }
         }
       );
@@ -316,21 +330,31 @@ class NotificationService {
   async getLastNotificationResponse() {
     try {
       console.log('🔍 Checking for last notification response...');
+      console.log('🕐 Timestamp:', new Date().toISOString());
 
       const response = await Notifications.getLastNotificationResponseAsync();
 
       if (response) {
-        console.log('📬 Found last notification response:', response);
-        console.log('Last notification data:', response.notification.request.content.data);
+        console.log('📬 Found last notification response!');
+        console.log('📦 Full response:', JSON.stringify(response, null, 2));
+        console.log('📍 Notification data:', response.notification.request.content.data);
+        console.log('🎯 Notification title:', response.notification.request.content.title);
+        console.log('📄 Notification body:', response.notification.request.content.body);
+
+        const data = response.notification.request.content.data;
+        if (data && data.screen) {
+          console.log(`🚀 App was opened with intent to navigate to: /${data.screen}`);
+        }
 
         return response;
       } else {
-        console.log('📭 No last notification response found');
+        console.log('📭 No last notification response found (app opened normally)');
         return null;
       }
 
     } catch (error) {
       console.error('❌ Error getting last notification response:', error);
+      console.error('Error details:', error.message, error.stack);
       return null;
     }
   }

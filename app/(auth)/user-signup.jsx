@@ -9,27 +9,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
-    AlertCircle,
-    CheckCircle,
-    ChevronLeft,
-    Eye,
-    EyeOff,
-    Lock,
-    Mail,
-    Phone,
-    User as UserIcon
+  AlertCircle,
+  CheckCircle,
+  ChevronLeft,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Phone,
+  User as UserIcon
 } from 'lucide-react-native';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
@@ -118,7 +118,7 @@ export default function UserSignupScreen() {
       if (result.success) {
         console.log('✅ Signup successful, navigating to user home...');
         // Navigate to user home (auto-login after signup)
-        router.replace('/user/home');
+        router.replace('/home');
       } else {
         setError(result.error || 'Signup failed. Please try again.');
       }
