@@ -122,12 +122,41 @@ export default function SettingsTab() {
             icon="business-outline"
             title="Switch Apartment"
             subtitle="Change your active apartment"
-            onPress={() => router.push('/user/select-apartment')}
+            onPress={() => router.push('/switch-apartments')}
+          />
+        </View>
+
+        {/* Rent Management Section */}
+        <SectionHeader title="Rent Management" />
+        <View style={styles.section}>
+          <SettingItem
+            icon="document-text-outline"
+            title="My Rent Sessions"
+            subtitle="View all your rental agreements"
+            onPress={() => router.push('/user/rent/session-data')}
+          />
+          <SettingItem
+            icon="add-outline"
+            title="Create Rent Session"
+            subtitle="Set up a new rental agreement"
+            onPress={() => router.push('/user/rent/create-session')}
+          />
+          <SettingItem
+            icon="card-outline"
+            title="Payment History"
+            subtitle="View rent payment records"
+            onPress={() => router.push('/user/rent/payment-history')}
+          />
+          <SettingItem
+            icon="chatbox-ellipses-outline"
+            title="Disputes"
+            subtitle="View and manage rent disputes"
+            onPress={() => router.push('/user/rent/disputes')}
           />
         </View>
 
         {/* Members Section */}
-        <SectionHeader title="Members" />
+        {/* <SectionHeader title="Members" />
         <View style={styles.section}>
           <SettingItem
             icon="people-outline"
@@ -135,7 +164,7 @@ export default function SettingsTab() {
             subtitle="View and invite family members"
             onPress={() => router.push('/user/members')}
           />
-        </View>
+        </View> */}
 
         {/* Notifications Section */}
         <SectionHeader title="Notifications" />

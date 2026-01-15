@@ -4,12 +4,11 @@
 // Shows current apartment and allows switching
 // ============================================
 
-import { API_ENDPOINTS, buildApiUrl } from "@/config/apiConfig";
-import { getAuthToken } from "@/services/authService";
+import { useApartment } from "@/providers/ApartmentProvider";
 import { borderRadius, colors, spacing, typography } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import {
   Platform,
   StatusBar,
@@ -19,57 +18,125 @@ import {
   View,
 } from "react-native";
 
+// ============================================
+// DUMMY DATA FOR TESTING
+// ============================================
+
+// Single apartment scenario
+const singleApartmentData = {
+  success: true,
+  apartment: {
+    id: "apt_001",
+    towerName: "Tower A",
+    apartmentNumber: "304",
+    communityName: "Prestige Lakeside Habitat",
+  },
+  allApartments: [
+    {
+      id: "apt_001",
+      towerName: "Tower A",
+      apartmentNumber: "304",
+      communityName: "Prestige Lakeside Habitat",
+    },
+  ],
+};
+
+// Multiple apartments scenario
+const multipleApartmentsData = {
+  success: true,
+  apartment: {
+    id: "apt_001",
+    towerName: "Tower A",
+    apartmentNumber: "304",
+    communityName: "Prestige Lakeside Habitat",
+  },
+  allApartments: [
+    {
+      id: "apt_001",
+      towerName: "Tower A",
+      apartmentNumber: "304",
+      communityName: "Prestige Lakeside Habitat",
+    },
+    {
+      id: "apt_002",
+      towerName: "Tower B",
+      apartmentNumber: "502",
+      communityName: "Brigade Meadows",
+    },
+    {
+      id: "apt_003",
+      towerName: "Phase 2",
+      apartmentNumber: "1201",
+      communityName: "Sobha Dream Acres",
+    },
+  ],
+};
+
+// No apartments scenario
+const noApartmentsData = {
+  success: true,
+  apartment: null,
+  allApartments: [],
+};
+
+// Apartment without tower name
+const apartmentWithoutTowerData = {
+  success: true,
+  apartment: {
+    id: "apt_004",
+    towerName: null,
+    apartmentNumber: "B-405",
+    communityName: "Mantri Espana",
+  },
+  allApartments: [
+    {
+      id: "apt_004",
+      towerName: null,
+      apartmentNumber: "B-405",
+      communityName: "Mantri Espana",
+    },
+  ],
+};
+
+// Long community name scenario
+const longNameData = {
+  success: true,
+  apartment: {
+    id: "apt_005",
+    towerName: "Wing C",
+    apartmentNumber: "1804",
+    communityName: "Purva Venezia Premium Lifestyle Community",
+  },
+  allApartments: [
+    {
+      id: "apt_005",
+      towerName: "Wing C",
+      apartmentNumber: "1804",
+      communityName: "Purva Venezia Premium Lifestyle Community",
+    },
+  ],
+};
+
 export default function ApartmentHeader() {
   const router = useRouter();
-  const [currentApartment, setCurrentApartment] = useState(null);
-  const [userApartments, setUserApartments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadCurrentApartment();
-  }, []);
-
-  const loadCurrentApartment = async () => {
-    try {
-      const token = await getAuthToken();
-      if (!token) return;
-
-      // Get user's current apartment
-      const response = await fetch(
-        buildApiUrl(API_ENDPOINTS.GET_CURRENT_APARTMENT),
-        {
-          method: "POST", // 👈 IMPORTANT
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token }), // 👈 send token in body
-        }
-      );
-
-      const data = await response.json();
-      console.log("Current Apartment response:", data);
-      if (data.success && data.apartment) {
-        setCurrentApartment(data.apartment);
-        setUserApartments(data.allApartments || []);
-      }
-    } catch (error) {
-      console.error("Error loading apartment:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    currentApartment,
+    userApartments,
+    loading,
+    isApartmentAvailable,
+    hasMultipleApartments,
+    refreshApartment,
+  } = useApartment();
 
   const handleApartmentPress = () => {
-    if (userApartments.length > 1) {
-      // Navigate to apartment switcher
-      router.push("/user/select-apartment");
-    } else if (userApartments.length === 0) {
-      // Navigate to add apartment
+    if (hasMultipleApartments) {
+      router.push("/switch-apartments");
+    } else if (!isApartmentAvailable) {
       router.push("/user/add-apartment");
     }
   };
 
-  if (loading || !currentApartment) {
+  if (loading || !isApartmentAvailable) {
     return (
       <View style={[styles.header, styles.loadingHeader]}>
         <StatusBar
@@ -92,7 +159,11 @@ export default function ApartmentHeader() {
         {/* Left: App Logo/Name */}
         <View style={styles.leftSection}>
           <View style={styles.logoContainer}>
-            <Ionicons name="business" size={24} color={colors.primary.blue} />
+            <Image
+              source={require("@/assets/company/icon.png")}
+              style={styles.logo}
+              contentFit="contain"
+            />
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.appName}>Hommunity</Text>
@@ -163,6 +234,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: spacing.sm,
+  },
+  logo: {
+    width: 32,
+    height: 32,
   },
   textContainer: {
     flex: 1,

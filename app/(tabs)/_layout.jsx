@@ -1,9 +1,10 @@
 // ============================================
 // FILE: app/(tabs)/_layout.jsx
 // Tabs Layout - Main Navigation for User Side
-// Tabs: Home, History, Active Guests, Settings
+// Tabs: Home, My Home, Communities, Classifieds, Settings
 // ============================================
 
+import SafeAreaWrapper from "@/components/SafeAreaWrapper";
 import ApartmentHeader from "@/components/user/ApartmentHeader";
 import { borderRadius, colors, spacing, typography } from "@/theme";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,7 +14,8 @@ import { Platform, View } from "react-native";
 export default function TabsLayout() {
   return (
     <>
-      {/* Common Header with Apartment Switcher */}
+     <SafeAreaWrapper edges={['left', 'right', 'bottom']}>
+       {/* Common Header with Apartment Switcher */}
       <ApartmentHeader />
 
       <Tabs
@@ -28,8 +30,8 @@ export default function TabsLayout() {
             height: Platform.OS === "ios" ? 85 : 65,
             paddingBottom: Platform.OS === "ios" ? 25 : 10,
             paddingTop: 10,
-            elevation: 0, // No shadow on Android
-            shadowOpacity: 0, // No shadow on iOS
+            elevation: 0,
+            shadowOpacity: 0,
           },
           tabBarLabelStyle: {
             fontFamily: typography.fonts.medium,
@@ -41,6 +43,7 @@ export default function TabsLayout() {
           },
         }}
       >
+        {/* 🏠 Home */}
         <Tabs.Screen
           name="home"
           options={{
@@ -68,10 +71,11 @@ export default function TabsLayout() {
           }}
         />
 
+        {/* 🏡 My Home */}
         <Tabs.Screen
-          name="history"
+          name="my-home"
           options={{
-            title: "History",
+            title: "My Home",
             tabBarIcon: ({ color, size, focused }) => (
               <View
                 style={{
@@ -86,7 +90,7 @@ export default function TabsLayout() {
                 }}
               >
                 <Ionicons
-                  name={focused ? "time" : "time-outline"}
+                  name={focused ? "home-sharp" : "home-outline"}
                   size={size}
                   color={color}
                 />
@@ -95,10 +99,11 @@ export default function TabsLayout() {
           }}
         />
 
+        {/* 👥 Communities */}
         <Tabs.Screen
-          name="active"
+          name="communities"
           options={{
-            title: "Active",
+            title: "Communities",
             tabBarIcon: ({ color, size, focused }) => (
               <View
                 style={{
@@ -122,6 +127,35 @@ export default function TabsLayout() {
           }}
         />
 
+        {/* 🛒 Classifieds */}
+        <Tabs.Screen
+          name="classifieds"
+          options={{
+            title: "Classifieds",
+            tabBarIcon: ({ color, size, focused }) => (
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: focused
+                    ? colors.primaryShades.blue50
+                    : "transparent",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons
+                  name={focused ? "pricetags" : "pricetags-outline"}
+                  size={size}
+                  color={color}
+                />
+              </View>
+            ),
+          }}
+        />
+
+        {/* ⚙️ Settings */}
         <Tabs.Screen
           name="settings"
           options={{
@@ -148,7 +182,64 @@ export default function TabsLayout() {
             ),
           }}
         />
+
+        <Tabs.Screen
+          name="history"
+          options={{
+            // title: "History",
+            // tabBarIcon: ({ color, size, focused }) => (
+            //   <View
+            //     style={{
+            //       width: 40,
+            //       height: 40,
+            //       borderRadius: borderRadius.lg,
+            //       backgroundColor: focused
+            //         ? colors.primaryShades.blue50
+            //         : "transparent",
+            //       justifyContent: "center",
+            //       alignItems: "center",
+            //     }}
+            //   >
+            //     <Ionicons
+            //       name={focused ? "time" : "time-outline"}
+            //       size={size}
+            //       color={color}
+            //     />
+            //   </View>
+            // ),
+            href: null,
+          }}
+        />
+
+        <Tabs.Screen
+          name="active"
+          options={{
+            // title: "Active",
+            // tabBarIcon: ({ color, size, focused }) => (
+            //   <View
+            //     style={{
+            //       width: 40,
+            //       height: 40,
+            //       borderRadius: borderRadius.lg,
+            //       backgroundColor: focused
+            //         ? colors.primaryShades.blue50
+            //         : "transparent",
+            //       justifyContent: "center",
+            //       alignItems: "center",
+            //     }}
+            //   >
+            //     <Ionicons
+            //       name={focused ? "people" : "people-outline"}
+            //       size={size}
+            //       color={color}
+            //     />
+            //   </View>
+            // ),
+            href: null,
+          }}
+        />
       </Tabs>
+     </SafeAreaWrapper>
     </>
   );
 }

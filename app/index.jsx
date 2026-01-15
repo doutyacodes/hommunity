@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ChevronRight, Lock, Shield, User } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -30,10 +30,10 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
 
-  // // Check authentication status on mount
-  // useEffect(() => {
-  //   checkAuthenticationStatus();
-  // }, []);
+  // Check authentication status on mount
+  useEffect(() => {
+    checkAuthenticationStatus();
+  }, []);
 
   const checkAuthenticationStatus = async () => {
     try {
@@ -53,6 +53,7 @@ export default function OnboardingScreen() {
           router.replace('/security/home');
         } else if (userType === 'user' || userType === 'resident') {
           console.log('🏠 Redirecting to user home...');
+          // router.replace('/home');
           router.replace('/home');
         } else if (userType === 'admin' || userType === 'superadmin') {
           console.log('👨‍💼 Redirecting to admin dashboard...');

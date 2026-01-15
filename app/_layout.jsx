@@ -1,11 +1,12 @@
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { ApartmentProvider } from "@/providers/ApartmentProvider";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NotificationProvider } from '@/contexts/NotificationContext';
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Prevent auto-hiding splash screen
 SplashScreen.preventAutoHideAsync();
@@ -40,12 +41,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <NotificationProvider>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        </Stack>
+        <ApartmentProvider>
+          <StatusBar style="auto" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+          </Stack>
+        </ApartmentProvider>
       </NotificationProvider>
     </SafeAreaProvider>
   );

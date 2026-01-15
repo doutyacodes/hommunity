@@ -4,8 +4,8 @@
 // ============================================
 
 // API Base URL
-export const API_BASE_URL = 'https://gatewise.vercel.app';
-// export const API_BASE_URL = 'http://192.168.1.8:3000';
+// export const API_BASE_URL = 'https://gatewise.vercel.app';
+export const API_BASE_URL = 'http://192.168.1.13:3000';
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -79,6 +79,64 @@ export const API_ENDPOINTS = {
   ADD_MEMBER: '/api/mobile-api/user/members',
   UPDATE_MEMBER: '/api/mobile-api/user/members',
   DELETE_MEMBER: '/api/mobile-api/user/members',
+
+   // ============================================
+  // Room Management (NEW)
+  // ============================================
+  ROOMS_LIST: '/api/mobile-api/user/rooms',
+  CREATE_ROOM: '/api/mobile-api/user/rooms',
+  UPDATE_ROOM: '/api/mobile-api/user/rooms', // + /:id
+  DELETE_ROOM: '/api/mobile-api/user/rooms', // + /:id
+  APPROVE_ROOM: '/api/mobile-api/user/rooms', // + /:id/approve
+  REJECT_ROOM: '/api/mobile-api/user/rooms', // + /:id/reject
+
+  // Room Accessories
+  ROOM_ACCESSORIES_LIST: (roomId) => `/api/mobile-api/user/rooms/${roomId}/accessories`,
+  ADD_ROOM_ACCESSORY: (roomId) => `/api/mobile-api/user/rooms/${roomId}/accessories`,
+  UPDATE_ROOM_ACCESSORY: (roomId, accessoryId) => `/api/mobile-api/user/rooms/${roomId}/accessories/${accessoryId}`,
+  DELETE_ROOM_ACCESSORY: (roomId, accessoryId) => `/api/mobile-api/user/rooms/${roomId}/accessories/${accessoryId}`,
+  APPROVE_ROOM_ACCESSORY: (roomId, accessoryId) => `/api/mobile-api/user/rooms/${roomId}/accessories/${accessoryId}/approve`,
+
+  // Replacement History
+  ROOM_REPLACEMENT_HISTORY: (roomId) => `/api/mobile-api/user/rooms/${roomId}/replacement-history`,
+  ADD_REPLACEMENT: (roomId) => `/api/mobile-api/user/rooms/${roomId}/replacement-history`,
+  UPDATE_REPLACEMENT: (roomId, replacementId) => `/api/mobile-api/user/rooms/${roomId}/replacement-history/${replacementId}`,
+  DELETE_REPLACEMENT: (roomId, replacementId) => `/api/mobile-api/user/rooms/${roomId}/replacement-history/${replacementId}`,
+  APPROVE_REPLACEMENT: (roomId, replacementId) => `/api/mobile-api/user/rooms/${roomId}/replacement-history/${replacementId}/approve`,
+
+  // Rent Sessions
+  RENT_SESSIONS_LIST: '/api/mobile-api/user/rent-sessions',
+  RENT_SESSION_DETAILS: (sessionId) => `/api/mobile-api/user/rent-sessions/${sessionId}`,
+  RENT_SESSION_DOCUMENTS: '/api/mobile-api/user/rent-sessions/documents',
+  RENT_SESSION_DOCUMENTS_LIST: (sessionId) => `/api/mobile-api/user/rent-sessions/documents?sessionId=${sessionId}`,
+
+
+  DISPUTES: '/api/mobile-api/disputes',
+  CREATE_DISPUTE: '/api/mobile-api/disputes',
+  DISPUTE_DETAILS: (disputeId) => `/api/mobile-api/disputes/${disputeId}`,
+  DISPUTE_CHAT: (disputeId) => `/api/mobile-api/disputes/${disputeId}/chat`,
+  ESCALATE_DISPUTE: (disputeId) => `/api/mobile-api/disputes/${disputeId}/escalate`,
+  RESOLVE_DISPUTE: (disputeId) => `/api/mobile-api/disputes/${disputeId}/resolve`,
+   // ============================================
+  // Community Posts & Social (NEW)
+  // ============================================
+  COMMUNITY_POSTS: '/api/mobile-api/user/community-posts',
+  COMMUNITY_POST_DETAILS: (postId) => `/api/mobile-api/user/community-posts/${postId}`,
+  COMMUNITY_COMMENTS: '/api/mobile-api/user/community-posts/comments',
+  COMMUNITY_REPORT: '/api/mobile-api/user/community-posts/report',
+  CREATE_COMMUNITY_POST: '/api/mobile-api/user/community-posts',
+  LIKE_POST: '/api/mobile-api/user/community-posts/like',
+  LIKE_COMMENT: '/api/mobile-api/user/community-posts/comments/like',
+
+  // ============================================
+  // Classifieds/Marketplace (NEW)
+  // ============================================
+  CLASSIFIEDS: '/api/mobile-api/user/classifieds',
+  CLASSIFIED_DETAILS: (classifiedId) => `/api/mobile-api/user/classifieds/${classifiedId}`,
+  LIKE_CLASSIFIED: '/api/mobile-api/user/classifieds/like',
+  CLASSIFIED_COMMENTS: '/api/mobile-api/user/classifieds/comments',
+
+  USER_HOME: '/api/mobile-api/user/home',
 };
 
 // Secure Storage Keys
