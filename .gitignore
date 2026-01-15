@@ -8,7 +8,7 @@ mobile-api/
 dist/
 web-build/
 expo-env.d.ts
-
+.claude/
 # Native
 .kotlin/
 *.orig.*
